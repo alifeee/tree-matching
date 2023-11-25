@@ -6,11 +6,23 @@ import re
 
 
 class Plate:
-    """A hexagonal plate with a label (centre) and a layout of images
-    represented as lowercase letters, e.g., "abcdef"
-    """
+    """A hexagonal plate with a label (centre) and a layout of images"""
 
     def __init__(self, label: str, layout: str):
+        """Constructor
+
+        Args:
+            label (str): label for the plate
+            layout (str): layout of the plate
+              represented as lowercase letters
+              e.g., "abcdef"
+              starting at the bottom and going anticlockwise
+              e.g.,
+                   d
+                e     c
+                f     b
+                   a
+        """
         self.label = label
         self.layout = layout
 
@@ -21,7 +33,18 @@ class Plate:
         return self.__repr__()
 
     def rotated(self, n: int) -> "Plate":
-        """Return a new plate with the layout rotated n times anticlockwise"""
+        """Return a new plate with the layout rotated n times anticlockwise
+        e.g., if plate = Plate("A", "abcdef")
+               d
+            e     c
+            f     b
+               a
+        then plate.rotated(1) = Plate("A", "bcdefa")
+               c
+            d     b
+            e     a
+               f
+        """
         return Plate(self.label, self.layout[n:] + self.layout[:n])
 
     def __eq__(self, other):
@@ -31,7 +54,7 @@ class Plate:
         return hash(self.label + self.layout)
 
     def __getitem__(self, position):
-        """Return the character at position"""
+        """for using plate[position] to get the character at that position"""
         return self.layout[position]
 
 
@@ -63,6 +86,19 @@ class Board:
     """A board of hexagonal plates"""
 
     def __init__(self, plates: List[Plate]):
+        """Constructor
+
+        Args:
+            plates (List[Plate]): List of plates
+              starting in the centre, then the bottom, then anticlockwise
+              i.e., for plates [1, 2, 3, 4, 5, 6, 7]
+                    5
+                6       4
+                    1
+                7       3
+                    2
+        """
+
         self.plates = plates
 
     def __repr__(self):
@@ -77,7 +113,6 @@ class Board:
         for i, plate in enumerate(self.plates):
             for j, char in enumerate(plate.layout):
                 _board = _board.replace(f"{i+1}{j+1}", char)
-        # replace any remaining digit pairs with spaces
         _board = re.sub(r"\d\d", " ", _board)
         return _board
 
@@ -109,13 +144,28 @@ def connection_is_valid(plate1, plate2, position1, position2):
     """Return True if the connection between plate1 and plate2 is valid,
     i.e., the character of plate1 matches the character of plate2 at the
     connection point
+    e.g.,
+      plate1 = Plate("A", "abcdef")
+      plate2 = Plate("B", "cedfba")
+      position1 = 2
+      position2 = 5
+      connection_is_valid(plate1, plate2, position1, position2)
+        => True
+           d
+        e     c
+        f     b    f
+           a    b     d
+                a     e
+                   c
     """
     return plate1[position1 - 1] == plate2[position2 - 1]
 
 
 def board_is_valid(board):
     """Return True if the board is valid,
-    i.e., the layout of each plate matches the layout of the adjacent plates"""
+    i.e., the layout of each plate matches the layout of the adjacent plates
+    Rules here were worked out manually
+    """
     valid = True
     if len(board) >= 2:
         # 1<->2 1<->4
@@ -151,37 +201,42 @@ def board_is_valid(board):
     return valid
 
 
-def board_is_complete(board):
-    """Return True if the board is complete, i.e., all plates are used"""
-    return len(board) == 7
-
-
-def next_board(board: Board, plate_options: List[Plate]) -> Tuple[bool, Board]:
+def next_board(
+    board: Board, plate_options: List[Plate], solutions: List[Board] = []
+) -> Tuple[bool, Board]:
     """recursive function"""
-    # board is complete
+    # board is complete!
     if plate_options == []:
         return True, board
 
+    # board is not complete
+    # find all possible next boards
+    #   by picking each plate, and spinning it 6 times
     next_boards = []
     next_plates = []
-    for plate_option in plate_options:
-        rotated_plates = [plate_option.rotated(i) for i in range(6)]
-        for rotated_plate in rotated_plates:
-            # print("testing plate:", rotated_plate, "on board:", board)
-            new_board = board + rotated_plate
-            new_plate_options = plate_options.copy()
-            new_plate_options.remove(plate_option)
+    for plate in plate_options:
+        for plate_rotated in [plate.rotated(i) for i in range(6)]:
+            new_board = board + plate_rotated
+            new_plate_options = [p for p in plate_options if p != plate]
 
             if board_is_valid(new_board):
                 next_boards.append(new_board)
                 next_plates.append(new_plate_options)
 
+    # try each next board
+    valid_boards = []
     for i, _ in enumerate(next_boards):
         valid, board = next_board(next_boards[i], next_plates[i])
         if valid:
-            return True, board
+            valid_boards.append(board)
 
-    return False, board
+    # no valid boards found from this board
+    if valid_boards == []:
+        return False, board
+
+    # valid boards found from this board
+    # return the first one
+    return True, valid_boards[0]
 
 
 def main():
@@ -195,7 +250,6 @@ def main():
     plate7 = Plate("G", "acbdef")
 
     board = Board([])
-
     plate_options = [plate1, plate2, plate3, plate4, plate5, plate6, plate7]
 
     valid, final_board = next_board(board, plate_options)
@@ -204,6 +258,8 @@ def main():
         print(final_board)
         print(final_board.ascii_simple())
         print(final_board.ascii())
+    else:
+        print("no solution found")
 
 
 if __name__ == "__main__":
