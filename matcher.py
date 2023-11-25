@@ -1,7 +1,7 @@
 """matcher!"""
 
 
-from typing import Any, List, Tuple
+from typing import List, Tuple
 import re
 
 
@@ -114,7 +114,8 @@ def connection_is_valid(plate1, plate2, position1, position2):
 
 
 def board_is_valid(board):
-    """Return True if the board is valid, i.e., the layout of each plate matches the layout of the adjacent plates"""
+    """Return True if the board is valid,
+    i.e., the layout of each plate matches the layout of the adjacent plates"""
     valid = True
     if len(board) >= 2:
         # 1<->2 1<->4
@@ -161,10 +162,6 @@ def next_board(board: Board, plate_options: List[Plate]) -> Tuple[bool, Board]:
     if plate_options == []:
         return True, board
 
-    # print()
-    # print("NEW FUNCTION CALL")
-    # print("current board:", board)
-    # print("current plate options:", plate_options)
     next_boards = []
     next_plates = []
     for plate_option in plate_options:
