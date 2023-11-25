@@ -3,6 +3,9 @@
 
 from typing import List, Tuple
 import re
+import time
+
+solutions = []
 
 
 class Plate:
@@ -201,9 +204,7 @@ def board_is_valid(board):
     return valid
 
 
-def next_board(
-    board: Board, plate_options: List[Plate], solutions: List[Board] = []
-) -> Tuple[bool, Board]:
+def next_board(board: Board, plate_options: List[Plate]) -> Tuple[bool, Board]:
     """recursive function"""
     # board is complete!
     if plate_options == []:
@@ -231,11 +232,15 @@ def next_board(
             valid_boards.append(board)
 
     # no valid boards found from this board
-    if valid_boards == []:
+    if not valid_boards:
         return False, board
 
     # valid boards found from this board
     # return the first one
+    for valid_board in valid_boards:
+        if valid_board not in solutions:
+            solutions.append(valid_board)
+
     return True, valid_boards[0]
 
 
@@ -252,12 +257,13 @@ def main():
     board = Board([])
     plate_options = [plate1, plate2, plate3, plate4, plate5, plate6, plate7]
 
-    valid, final_board = next_board(board, plate_options)
+    valid, _ = next_board(board, plate_options)
     if valid:
-        print("solution found")
-        print(final_board)
-        print(final_board.ascii_simple())
-        print(final_board.ascii())
+        print(f"{len(solutions)} solution(s) found")
+        for i, solution in enumerate(solutions):
+            print(f"Solution {i+1}:")
+            print(solution.ascii_simple())
+            print(solution.ascii())
     else:
         print("no solution found")
 
