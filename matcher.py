@@ -3,7 +3,6 @@
 
 from typing import List, Tuple
 import re
-import time
 
 solutions = []
 
