@@ -1,7 +1,7 @@
 """tests for matcher.py"""
 
 import unittest
-from matcher import Board, Plate, board_is_valid, connection_is_valid
+from matcher import Board, Plate, board_is_complete, board_is_valid, connection_is_valid
 
 
 class TestPlate(unittest.TestCase):
@@ -79,3 +79,34 @@ class TestBoardIsValid(unittest.TestCase):
         board = Board([plate1, plate2, plate3])
 
         self.assertTrue(board_is_valid(board))
+
+
+class TestBoard(unittest.TestCase):
+    """test Board class"""
+
+    def test_add_builtin(self):
+        """test __add__ method"""
+        plate1 = Plate("A", "abcdef")
+        plate2 = Plate("B", "defabc")
+
+        board = Board([plate1]) + plate2
+
+        self.assertEqual(board, Board([plate1, plate2]))
+
+
+class TestBoardIsComplete(unittest.TestCase):
+    """test board_is_complete method"""
+
+    def test_board_is_complete(self):
+        """test board_is_complete method"""
+        plate1 = Plate("A", "abcdef")
+        plate2 = Plate("B", "defabc")
+        plate3 = Plate("C", "aecdbf")
+        plate4 = Plate("D", "abcdef")
+        plate5 = Plate("E", "defabc")
+        plate6 = Plate("F", "aecdbf")
+        plate7 = Plate("G", "aecdbf")
+
+        board = Board([plate1, plate2, plate3, plate4, plate5, plate6, plate7])
+
+        self.assertTrue(board_is_complete(board))

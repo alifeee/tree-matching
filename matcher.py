@@ -1,7 +1,7 @@
 """matcher!"""
 
 
-from typing import List
+from typing import Any, List, Tuple
 import re
 
 
@@ -50,6 +50,14 @@ BOARD_ASCII = """
            21    
 """
 
+BOARD_ASCII_SIMPLE = """
+    5
+6       4
+    1
+7       3
+    2
+"""
+
 
 class Board:
     """A board of hexagonal plates"""
@@ -61,12 +69,24 @@ class Board:
         return f"Board({self.plates})"
 
     def __str__(self):
+        return self.__repr__()
+
+    def ascii(self):
+        """pretty print"""
         _board = BOARD_ASCII
         for i, plate in enumerate(self.plates):
             for j, char in enumerate(plate.layout):
                 _board = _board.replace(f"{i+1}{j+1}", char)
         # replace any remaining digit pairs with spaces
         _board = re.sub(r"\d\d", " ", _board)
+        return _board
+
+    def ascii_simple(self):
+        """pretty print"""
+        _board = BOARD_ASCII_SIMPLE
+        for i, plate in enumerate(self.plates):
+            _board = _board.replace(f"{i+1}", plate.label)
+        _board = re.sub(r"\d", " ", _board)
         return _board
 
     def __eq__(self, other):
@@ -80,6 +100,9 @@ class Board:
 
     def __getitem__(self, position):
         return self.plates[position - 1]
+
+    def __add__(self, other: Plate):
+        return Board(self.plates + [other])
 
 
 def connection_is_valid(plate1, plate2, position1, position2):
@@ -127,19 +150,63 @@ def board_is_valid(board):
     return valid
 
 
+def board_is_complete(board):
+    """Return True if the board is complete, i.e., all plates are used"""
+    return len(board) == 7
+
+
+def next_board(board: Board, plate_options: List[Plate]) -> Tuple[bool, Board]:
+    """recursive function"""
+    # board is complete
+    if plate_options == []:
+        return True, board
+
+    # print()
+    # print("NEW FUNCTION CALL")
+    # print("current board:", board)
+    # print("current plate options:", plate_options)
+    next_boards = []
+    next_plates = []
+    for plate_option in plate_options:
+        rotated_plates = [plate_option.rotated(i) for i in range(6)]
+        for rotated_plate in rotated_plates:
+            # print("testing plate:", rotated_plate, "on board:", board)
+            new_board = board + rotated_plate
+            new_plate_options = plate_options.copy()
+            new_plate_options.remove(plate_option)
+
+            if board_is_valid(new_board):
+                next_boards.append(new_board)
+                next_plates.append(new_plate_options)
+
+    for i, _ in enumerate(next_boards):
+        valid, board = next_board(next_boards[i], next_plates[i])
+        if valid:
+            return True, board
+
+    return False, board
+
+
 def main():
     """main"""
-    plate1 = Plate("A", "abcdef")
-    plate2 = Plate("B", "bcdefa")
-    plate3 = Plate("C", "cdefab")
-    plate4 = Plate("D", "defabc")
-    plate5 = Plate("E", "efabcd")
-    plate6 = Plate("F", "fabcde")
-    plate7 = Plate("G", "abcdef")
+    plate1 = Plate("A", "abfced")
+    plate2 = Plate("B", "adebcf")
+    plate3 = Plate("C", "afcdbe")
+    plate4 = Plate("D", "adfbec")
+    plate5 = Plate("E", "adecfb")
+    plate6 = Plate("F", "abcdef")
+    plate7 = Plate("G", "acbdef")
 
-    board = Board([plate1, plate2, plate3, plate4, plate5, plate6, plate7])
+    board = Board([])
 
-    print(board)
+    plate_options = [plate1, plate2, plate3, plate4, plate5, plate6, plate7]
+
+    valid, final_board = next_board(board, plate_options)
+    if valid:
+        print("solution found")
+        print(final_board)
+        print(final_board.ascii_simple())
+        print(final_board.ascii())
 
 
 if __name__ == "__main__":
