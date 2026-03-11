@@ -1,3 +1,5 @@
+> [!CAUTION]
+> MOVED! see <https://git.alifeee.net/tree-matching/about/>
 # Tree Matching
 
 Given this puzzle, find a solution. The hexagons must be places in the holder, and each edge that touches must display the same image. Shown below is the solution.
